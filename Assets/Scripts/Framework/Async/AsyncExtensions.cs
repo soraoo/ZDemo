@@ -2,21 +2,25 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
 using System;
+using ZXC.Async;
 
-
-public static class AsyncExtensions
+namespace ZXC
 {
-    public static TaskAwaiter GetAwaiter(this TimeSpan timeSpan)
+    public static class AsyncExtensions
     {
-        return Task.Delay(timeSpan).GetAwaiter();
-    }
-
-    public static TaskAwaiter<AssetBundle> GetAwaiter(this AssetBundleCreateRequest request)
-    {
-        while(request.isDone)
+        public static TaskAwaiter GetAwaiter(this TimeSpan timeSpan)
         {
-            return TimeSpan.FromSeconds(Time.deltaTime).GetAwaiter();
+            return Task.Delay(timeSpan).GetAwaiter();
         }
-        return Task<AssetBundle>.CompletedTask.GetAwaiter();
+
+        public static IZAwaiter<AssetBundle> GetAwaiter(this AssetBundleCreateRequest request)
+        {
+            return new AssetBundleCreateRequestAwaiter(request);
+        }
+
+        public static IZAwaiter<UnityEngine.Object> GetAwaiter(this AssetBundleRequest request)
+        {
+            return new AssetBundleRequestAwaiter(request);
+        }
     }
 }

@@ -1,0 +1,19 @@
+ManifestFileVersion: 0
+CRC: 2270221082
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: com
+      Dependencies: {}
+    Info_1:
+      Name: cube1
+      Dependencies:
+        Dependency_0: com
+    Info_2:
+      Name: cube2
+      Dependencies:
+        Dependency_0: com
+    Info_3:
+      Name: cylinder
+      Dependencies:
+        Dependency_0: com

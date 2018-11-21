@@ -1,0 +1,19 @@
+ManifestFileVersion: 0
+CRC: 1045984237
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 2be6566e20f5e23e7eb1118cc8df1a0f
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 51a16e16d5113854a16091e54ae5bb0d
+HashAppended: 0
+ClassTypes:
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+Assets:
+- Assets/Sources/Mat1.mat
+- Assets/Sources/Mat2.mat
+Dependencies: []

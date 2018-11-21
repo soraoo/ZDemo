@@ -35,14 +35,14 @@ namespace ZXC.Factory
         {
             if (poolCount > maxPoolCount)
             {
-                if (obj is IDisposable)
-                {
-                    (obj as IDisposable).Dispose();
-                }
                 var poolData = GetPoolData(obj);
                 lock (poolList)
                 {
                     poolList.Remove(poolData);
+                }
+                if (obj is IDisposable)
+                {
+                    (obj as IDisposable).Dispose();
                 }
             }
             else
@@ -58,13 +58,16 @@ namespace ZXC.Factory
                 for (int i = 0; i < poolCount; i++)
                 {
                     var poolData = poolList[i];
-                    if (!poolData.InUse)
+                    if (poolData.Obj.GetType() == type && !poolData.InUse)
                     {
                         poolData.InUse = true;
+                        if(poolData.Obj is IRecycleObject)
+                        {
+                            (poolData.Obj as IRecycleObject).Create();
+                        }
                         return poolData.Obj;
                     }
                 }
-
                 if (poolCount >= maxPoolCount && limitCount)
                 {
                     ZLog.Warning("object pool has max");
@@ -74,7 +77,7 @@ namespace ZXC.Factory
                 object obj = ZInstanceUtility.CreateInstance(type, param);
                 var newPoolData = new PoolData
                 {
-                    InUse = false,
+                    InUse = true,
                     Obj = obj
                 };
                 poolList.Add(newPoolData);
@@ -90,6 +93,10 @@ namespace ZXC.Factory
                 var poolData = GetPoolData(obj);
                 if (poolData != null)
                 {
+                    if(obj is IRecycleObject)
+                    {
+                        (obj as IRecycleObject).Recycle();
+                    }
                     poolData.InUse = false;
                 }
             }
@@ -100,7 +107,7 @@ namespace ZXC.Factory
             for (int i = 0; i < poolCount; i++)
             {
                 var poolData = poolList[i];
-                if (poolData == obj)
+                if (poolData.Obj == obj)
                 {
                     return poolData;
                 }

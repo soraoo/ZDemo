@@ -1,11 +1,11 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using ZXC.Res;
-using UnityFx.Async.Promises;
 
 namespace ZXC
 {
@@ -24,60 +24,55 @@ namespace ZXC
         private int loadResCount1Frame = 1;
         public int LoadResCount1Frame { get; set; }
 
-        public override IEnumerator Init()
+        public override async Task Init()
         {
             //缓存manifest
-            yield return DoInit();
+            await DoInit();
         }
 
-        public void LoadAssetBundle(string bundlePath, LoadAssetDelegate<AssetBundle> onFinished)
+        public async Task<AssetBundle> LoadAssetBundle(string bundlePath)
         {
-            bundlePath = string.Format("{0}/{1}", ResUtility.GetAssetBundlesPath(), bundlePath);
             AssetBundle assetBundle = null;
             if (cacheAssetBundleDic.TryGetValue(bundlePath, out assetBundle))
             {
-                onFinished(true, null, assetBundle);
+                return assetBundle;
             }
             else
             {
                 //load dependences
-                var dependencies = manifest.GetAllDependencies(bundlePath);
-                foreach (var dependence in dependencies)
-                {
-                    if (cacheAssetBundleDic.ContainsKey(dependence))
-                    {
-                        assetBundleRefCountDic[dependence]++;
-                        continue;
-                    }
-
-                    var loader = CreateAssetLoader<AssetBundle>(dependence);
-                    Chain.Start().Coroutine(QueueInLoadAssetBundle(loader, (s, e, ab) =>
-                    {
-                        if (s)
-                        {
-                            assetBundleRefCountDic.Add(dependence, 1);
-                            cacheAssetBundleDic.Add(bundlePath, ab);
-                        }
-                    }));
-                }
-                Chain.Start().Coroutine(QueueInLoadAssetBundle(CreateAssetLoader<AssetBundle>(bundlePath), onFinished));
+                await LoadAssetBundleDependences(manifest.GetAllDependencies(bundlePath));
+                var loader = CreateAssetLoader<AssetBundle>();
+                assetBundle = await loader.LoadAssetBundle(bundlePath);
+                RecycleAssetLoader(loader);
+                assetBundleRefCountDic.Add(bundlePath, 1);
+                cacheAssetBundleDic.Add(bundlePath, assetBundle);
+                return assetBundle;
             }
         }
 
-        public void LoadAsset<T>(AssetId assetId, LoadAssetDelegate<T> onFinished) where T : Object
+        public async Task<T> LoadAsset<T>(AssetId assetId) where T : Object
         {
             Object asset = null;
             if (cacheResDic.TryGetValue(assetId, out asset))
             {
-                onFinished(true, string.Empty, asset as T);
+                return asset as T;
             }
             else
             {
-#if UNITY_EDITOR
-                LoadAssetFromLocal<T>(assetId, onFinished);
-#else
-                LoadAssetFromBundle<T>(assetId, onFinished);
-#endif
+                // #if UNITY_EDITOR
+                //                 LoadAssetFromLocal<T>(assetId, onFinished);
+                // #else
+                AssetBundle bundle = null;
+                if (cacheAssetBundleDic.TryGetValue(assetId.BundleId, out bundle))
+                {
+                    return await LoadAssetFromBundle<T>(assetId, bundle);
+                }
+                else
+                {
+                    bundle = await LoadAssetBundle(assetId.BundleId);
+                    return await LoadAssetFromBundle<T>(assetId, bundle);
+                }
+                //#endif  
             }
         }
 
@@ -91,95 +86,88 @@ namespace ZXC
             resLoaderQueue = new Queue<AssetLoader<Object>>();
         }
 
-        private IEnumerator DoInit()
+        private async Task DoInit()
         {
             //load asset bundle mainifest
-            var request = AssetBundle.LoadFromFileAsync(string.Format("{0}/{1}", ResUtility.GetAssetBundlesPath(), ResUtility.ASSET_BUNDLE_FOLDER_NAME));
-            while (!request.isDone)
-            {
-                yield return null;
-            }
-            var assetBundle = request.assetBundle;
+            var assetBundle = await AssetBundle.LoadFromFileAsync(string.Format("{0}/{1}", ResUtility.GetAssetBundlesPath(), ResUtility.ASSET_BUNDLE_FOLDER_NAME));
             manifest = assetBundle.LoadAsset<AssetBundleManifest>(ResUtility.ASSET_BUNDLE_MANIFEST);
         }
 
-#if UNITY_EDITOR
-        private void LoadAssetFromLocal<T>(AssetId assetId, LoadAssetDelegate<T> onFinished) where T : Object
-        {
-            T asset = null;
-            bool isSuccess = false;
-            string errMsg = string.Empty;
-            try
-            {
-                asset = AssetDatabase.LoadAssetAtPath<T>(assetId.ToString());
-            }
-            catch (System.Exception e)
-            {
-                isSuccess = false;
-                errMsg = e.ToString();
-            }
-            finally
-            {
-                onFinished(isSuccess, errMsg, asset);
-            }
-        }
-#endif
+        // #if UNITY_EDITOR
+        //         private void LoadAssetFromLocal<T>(AssetId assetId, LoadAssetDelegate<T> onFinished) where T : Object
+        //         {
+        //             T asset = null;
+        //             bool isSuccess = false;
+        //             string errMsg = string.Empty;
+        //             try
+        //             {
+        //                 asset = AssetDatabase.LoadAssetAtPath<T>(assetId.ToString());
+        //             }
+        //             catch (System.Exception e)
+        //             {
+        //                 isSuccess = false;
+        //                 errMsg = e.ToString();
+        //             }
+        //             finally
+        //             {
+        //                 onFinished(isSuccess, errMsg, asset);
+        //             }
+        //         }
+        // #endif
 
-        private void LoadAssetFromBundle<T>(AssetId assetId, LoadAssetDelegate<T> onFinished) where T : Object
+        private async Task LoadAssetBundleDependences(string[] dependencies)
         {
-            Object asset = null;
-            if (cacheResDic.TryGetValue(assetId, out asset))
+            foreach (var dependence in dependencies)
             {
-                onFinished(true, string.Empty, asset as T);
-            }
-            else
-            {
-                AssetBundle bundle = null;
-                if (cacheAssetBundleDic.TryGetValue(assetId.BundleId, out bundle))
+                if (cacheAssetBundleDic.ContainsKey(dependence))
                 {
-                    var loader = CreateAssetLoader<T>(assetId.ToString());
+                    assetBundleRefCountDic[dependence]++;
+                    continue;
                 }
-                else
-                {
-                    //get depedence
-                    var loader = CreateAssetLoader<AssetBundle>(assetId.BundleId);
-                }
+                var depedenceLoader = CreateAssetLoader<AssetBundle>();
+                var depedenceAB = await depedenceLoader.LoadAssetBundle(dependence);
+                RecycleAssetLoader(depedenceLoader);
+                assetBundleRefCountDic.Add(dependence, 1);
+                cacheAssetBundleDic.Add(dependence, depedenceAB);
             }
         }
 
-        private IEnumerator QueueInLoadAssetBundle(AssetLoader<AssetBundle> bundleLoader, LoadAssetDelegate<AssetBundle> onFinished)
+        private async Task<T> LoadAssetFromBundle<T>(AssetId assetId, AssetBundle bundle) where T : Object
         {
-            assetBundleLoaderQueue.Enqueue(bundleLoader);
-            int loadCount = 0;
-            while (assetBundleLoaderQueue.Count != 0)
-            {
-                if (loadCount >= LoadBundleCount1Frame)
-                    yield return null;
-                var loader = assetBundleLoaderQueue.Dequeue();
-                var op = loader.LoadAssetBundle();
-                
-                op.Then(assetbundle =>
-                {
-                    if (onFinished != null)
-                        onFinished(true, string.Empty, assetbundle);
-                })
-                .Catch(e =>
-                {
-                    if (onFinished != null)
-                        onFinished(false, e.Message, null);
-                });
-                loadCount++;
-            }
+            var loader = CreateAssetLoader<T>();
+            T asset = await loader.LoadAsset(bundle, assetId.ResId);
+            RecycleAssetLoader(loader);
+            cacheResDic.Add(assetId, asset);
+            return asset;
         }
 
-        private void QueueInLoadRes<T>(AssetLoader<T> loader) where T : Object
-        {
+        // private async void QueueInLoadAssetBundle(AssetLoader<AssetBundle> bundleLoader)
+        // {
+        //     assetBundleLoaderQueue.Enqueue(bundleLoader);
+        //     int loadCount = 0;
+        //     while (assetBundleLoaderQueue.Count != 0)
+        //     {
+        //         if (loadCount >= LoadBundleCount1Frame)
+        //             await Task.Delay(1);
+        //         var loader = assetBundleLoaderQueue.Dequeue();
+        //         var ab = await loader.LoadAssetBundle();
+        //         loadCount++;
+        //     }
+        // }
 
+        //         private void QueueInLoadRes<T>(AssetLoader<T> loader) where T : Object
+        //         {
+
+        //         }
+
+        private AssetLoader<T> CreateAssetLoader<T>() where T : Object
+        {
+            return ObjectFactory.GetFactory(FactoryType.Pool).CreateObject<AssetLoader<T>>();
         }
 
-        private AssetLoader<T> CreateAssetLoader<T>(string assetPath) where T : Object
+        private void RecycleAssetLoader<T>(AssetLoader<T> loader) where T : Object
         {
-            return ObjectFactory.GetFactory(FactoryType.Pool).CreateObject<AssetLoader<T>>(assetPath);
+            ObjectFactory.GetFactory(FactoryType.Pool).ReleaseObject(loader);
         }
     }
 }

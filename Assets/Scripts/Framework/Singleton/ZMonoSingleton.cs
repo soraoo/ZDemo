@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace ZXC
 {
@@ -52,9 +53,9 @@ namespace ZXC
         {
         }
 
-        public virtual IEnumerator Init()
+        public virtual Task Init()
         {
-            yield return null;
+            return null;
         }
     }
 }

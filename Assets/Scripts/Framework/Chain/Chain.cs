@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
-using UnityFx.Async;
-using UnityFx.Async.Promises;
 
 namespace ZXC
 {
