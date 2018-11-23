@@ -12,4 +12,10 @@ namespace ZXC.Async
         bool IsCompleted { get; }
         TResult GetResult();
     }
+
+    public interface IZAwaiter : INotifyCompletion
+    {
+        bool IsCompleted { get; }
+        void GetResult();
+    }
 }

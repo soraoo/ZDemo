@@ -639,7 +639,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Framework\Async\AssetBundleCreateRequestAwaiter.cs" />
+    <Compile Include="Assets\Scripts\Framework\Async\AssetBundleRequest.cs" />
     <Compile Include="Assets\Scripts\Framework\Async\AsyncExtensions.cs" />
+    <Compile Include="Assets\Scripts\Framework\Async\AsyncWaitFor.cs" />
+    <Compile Include="Assets\Scripts\Framework\Async\AsyncWaitFrame.cs" />
+    <Compile Include="Assets\Scripts\Framework\Async\IZAwaiter.cs" />
     <Compile Include="Assets\Scripts\Framework\Callback\CustomDelegate.cs" />
     <Compile Include="Assets\Scripts\Framework\Chain\Chain.cs" />
     <Compile Include="Assets\Scripts\Framework\Chain\ChainMgr.cs" />
@@ -647,6 +652,7 @@
     <Compile Include="Assets\Scripts\Framework\Exception\Exception.cs" />
     <Compile Include="Assets\Scripts\Framework\Msg\MsgCenter.cs" />
     <Compile Include="Assets\Scripts\Framework\ObjectFactory\IObjectFactory.cs" />
+    <Compile Include="Assets\Scripts\Framework\ObjectFactory\IRecycleObject.cs" />
     <Compile Include="Assets\Scripts\Framework\ObjectFactory\ObjectFactory.cs" />
     <Compile Include="Assets\Scripts\Framework\ObjectFactory\PoolObjectFactory.cs" />
     <Compile Include="Assets\Scripts\Framework\ObjectFactory\SingleObjectFactory.cs" />

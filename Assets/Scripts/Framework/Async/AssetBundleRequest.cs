@@ -30,7 +30,7 @@ namespace ZXC
         {
             while(!IsCompleted)
             {
-                await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime));
+                await Task.Delay(TimeSpan.FromSeconds(Time.unscaledDeltaTime));
             }
             continuation?.Invoke();
         }

@@ -8,9 +8,9 @@ namespace ZXC
 {
     public static class AsyncExtensions
     {
-        public static TaskAwaiter GetAwaiter(this TimeSpan timeSpan)
+        public static TaskAwaiter GetAwaiter(this WaitForSeconds waitForSeconds, float time)
         {
-            return Task.Delay(timeSpan).GetAwaiter();
+            return Task.Delay(TimeSpan.FromSeconds(time)).GetAwaiter();
         }
 
         public static IZAwaiter<AssetBundle> GetAwaiter(this AssetBundleCreateRequest request)

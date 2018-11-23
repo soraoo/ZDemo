@@ -9,12 +9,12 @@ namespace ZXC
 
         public static string ConvertAssetIdToAssetBundlePath(AssetId assetId)
         {
-            return string.Format("{0}/{1}", GetAssetBundlesPath(), assetId.ToString());
+            return $"{GetAssetBundlesPath()}/{assetId.ToString()}";
         }
 
         public static string GetAssetBundlesPath()
         {
-            return string.Format("{0}/{1}", Application.streamingAssetsPath, ASSET_BUNDLE_FOLDER_NAME);
+            return $"{Application.streamingAssetsPath}/{ASSET_BUNDLE_FOLDER_NAME}";
         }
     }
 }
