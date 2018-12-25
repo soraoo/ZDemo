@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using System;
 using ZXC.Async;
+using DG.Tweening;
 
 namespace ZXC
 {
@@ -21,6 +22,11 @@ namespace ZXC
         public static IZAwaiter<UnityEngine.Object> GetAwaiter(this AssetBundleRequest request)
         {
             return new AssetBundleRequestAwaiter(request);
+        }
+
+        public static IZAwaiter<Tweener> GetAwaiter(this Tweener tweener)
+        {
+            return new TweenerAwaiter(tweener);
         }
     }
 }

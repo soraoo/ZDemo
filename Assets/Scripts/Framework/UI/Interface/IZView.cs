@@ -8,7 +8,7 @@ namespace ZXC.UI
     {
         bool IsHide { get; set; }
         void Init();
-        void Open();
+        void Show();
         void Hide();
         void Close();
     }

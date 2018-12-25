@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace ZXC
 {
-    public class AssetBundleCreateRequestAwaiter : IZAwaiter<AssetBundle>
+    public class AssetBundleRequestAwaiter : IZAwaiter<UnityEngine.Object>
     {
-        private AssetBundleCreateRequest request;
+        private AssetBundleRequest request;
 
-        public AssetBundleCreateRequestAwaiter(AssetBundleCreateRequest request)
+        public AssetBundleRequestAwaiter(AssetBundleRequest request)
         {
             this.request = request;
         }
@@ -21,9 +21,9 @@ namespace ZXC
             }
         }
 
-        public AssetBundle GetResult()
+        public UnityEngine.Object GetResult()
         {
-            return request.assetBundle;
+            return request.asset;
         }
 
         public async void OnCompleted(Action continuation)

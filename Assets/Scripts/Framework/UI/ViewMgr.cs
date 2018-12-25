@@ -42,7 +42,7 @@ namespace ZXC
                 view.Init();
                 controller.Enabled();
             }
-            view.Open();
+            view.Show();
             return view;
         }
 

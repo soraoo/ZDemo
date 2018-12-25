@@ -12,6 +12,7 @@ namespace ZXC
         {
             Application.targetFrameRate = 60;
         }
+
         async void Start()
         {
             ZLog.Debug("Test--------------------");
@@ -42,8 +43,8 @@ namespace ZXC
             await new AsyncWaitFrame(30);
             stopwatch.Stop();
             ZLog.Debug(stopwatch.ElapsedMilliseconds);
+            
         }
-
 
         private IEnumerator TestIE()
         {
