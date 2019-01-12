@@ -9,7 +9,7 @@ namespace ZXC
     public sealed class AsyncWaitFrame : IZAwaiter
     {
         private int curFrame;
-        private int waitFrames;
+        private readonly int waitFrames;
 
         public AsyncWaitFrame(int frame)
         {
@@ -22,13 +22,7 @@ namespace ZXC
             return this;
         }
 
-        public bool IsCompleted
-        {
-            get
-            {
-                return curFrame >= waitFrames;
-            }
-        }
+        public bool IsCompleted => curFrame >= waitFrames;
 
         public void GetResult()
         {

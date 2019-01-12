@@ -8,19 +8,14 @@ namespace ZXC
 {
     public class TweenerAwaiter : IZAwaiter<Tweener>
     {
-        private Tweener tweener;
+        private readonly Tweener tweener;
 
         public TweenerAwaiter(Tweener tweener)
         {
             this.tweener = tweener;
         }
-        public bool IsCompleted
-        {
-            get
-            {
-                return tweener.IsComplete();
-            }
-        }
+
+        public bool IsCompleted => tweener.IsComplete();
 
         public Tweener GetResult()
         {

@@ -7,19 +7,14 @@ namespace ZXC
 {
     public class AssetBundleRequestAwaiter : IZAwaiter<UnityEngine.Object>
     {
-        private AssetBundleRequest request;
+        private readonly AssetBundleRequest request;
 
         public AssetBundleRequestAwaiter(AssetBundleRequest request)
         {
             this.request = request;
         }
-        public bool IsCompleted
-        {
-            get
-            {
-                return request.isDone;
-            }
-        }
+
+        public bool IsCompleted => request.isDone;
 
         public UnityEngine.Object GetResult()
         {

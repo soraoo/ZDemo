@@ -7,8 +7,8 @@ namespace ZXC
 {
     public sealed class AsyncWaitForSeconds : IZAwaiter
     {
-        private float curTime;
-        private float waitSeconds;
+        private readonly float curTime;
+        private readonly float waitSeconds;
 
         public AsyncWaitForSeconds(float time)
         {
@@ -21,13 +21,7 @@ namespace ZXC
             return this;
         }
 
-        public bool IsCompleted
-        {
-            get
-            {
-                return Time.time - curTime >= waitSeconds;
-            }
-        }
+        public bool IsCompleted => Time.time - curTime >= waitSeconds;
 
         public void GetResult()
         {

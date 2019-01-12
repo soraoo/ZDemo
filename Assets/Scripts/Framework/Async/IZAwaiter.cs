@@ -7,7 +7,7 @@ namespace ZXC.Async
     /// <summary>
     /// 能够await等待
     /// </summary>
-    public interface IZAwaiter<TResult> : INotifyCompletion
+    public interface IZAwaiter<out TResult> : INotifyCompletion
     {
         bool IsCompleted { get; }
         TResult GetResult();

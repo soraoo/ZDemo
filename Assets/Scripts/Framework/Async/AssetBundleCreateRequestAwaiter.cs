@@ -7,20 +7,15 @@ namespace ZXC
 {
     public class AssetBundleCreateRequestAwaiter : IZAwaiter<AssetBundle>
     {
-        private AssetBundleCreateRequest request;
+        private readonly AssetBundleCreateRequest request;
 
         public AssetBundleCreateRequestAwaiter(AssetBundleCreateRequest request)
         {
             this.request = request;
         }
-        public bool IsCompleted
-        {
-            get
-            {
-                return request.isDone;
-            }
-        }
 
+        public bool IsCompleted => request.isDone;
+        
         public AssetBundle GetResult()
         {
             return request.assetBundle;
