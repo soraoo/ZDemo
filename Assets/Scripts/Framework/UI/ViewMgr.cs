@@ -29,7 +29,7 @@ namespace ZXC
             //StartCoroutine(CheckCloseView());
         }
 
-        public async Task<ViewBase<V, P>> OpenView<V, P>()
+        public async Task OpenView<V, P>(string viewName)
             where V : class, IView
             where P : class, IPresenter<V>
         {
@@ -38,27 +38,11 @@ namespace ZXC
             {
                 var viewObj = await ResMgr.instance.LoadAsset<GameObject>(AssetId.Create("", ""));
                 var presenter = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<IPresenter<IView>>();
+                view = viewObj.GetComponent<ViewBase<V, P>>() ?? viewObj.AddComponent<ViewBase<V, P>>();
+                presenter.BindView(view);
                 viewDic.Add(typeof(V), presenter);
-                view = viewObj.GetComponent<ViewBase<V, P> >();
             }
-            else
-            {
-                view = null;
-            }
-
-            return view;
-//            var view = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<TView>() as IZView;
-//            var controller = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<IZController>() as IZController;
-//
-//            if (!viewDic.ContainsKey(view))
-//            {
-//                //加载View资源
-//                //初始化
-//                view.Init();
-//                controller.Enabled();
-//            }
-//            view.Show();
-//            return view;
+            view.Init();
         }
 
         public void HideView<TView>(TView view) where TView : IZView
