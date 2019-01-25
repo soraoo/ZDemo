@@ -2,7 +2,7 @@ using ZXC.UI;
 
 namespace ZXC.Presenter
 {
-    public abstract class PresenterBase<V> : IPresenter<V> where V : IView
+    public abstract class PresenterBase<V> : IPresenter<V> where V : class, IView
     {
         protected V View { get; private set; }
         
@@ -13,7 +13,7 @@ namespace ZXC.Presenter
 
         public void UnBindView()
         {
-            View = default(V);
+            View = null;
         }
     }
 }
