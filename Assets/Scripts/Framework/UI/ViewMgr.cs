@@ -29,17 +29,17 @@ namespace ZXC
             //StartCoroutine(CheckCloseView());
         }
 
-        public async Task<IView> OpenView<V, P>()
+        public async Task<ViewBase<V, P>> OpenView<V, P>()
             where V : class, IView
             where P : class, IPresenter<V>
         {
-            IView view = null;
+            ViewBase<V, P> view = null;
             if (!viewDic.ContainsKey(typeof(V)))
             {
                 var viewObj = await ResMgr.instance.LoadAsset<GameObject>(AssetId.Create("", ""));
                 var presenter = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<IPresenter<IView>>();
                 viewDic.Add(typeof(V), presenter);
-                view = viewObj.GetComponent<ViewBase<V, P>>();
+                view = viewObj.GetComponent<ViewBase<V, P> >();
             }
             else
             {
