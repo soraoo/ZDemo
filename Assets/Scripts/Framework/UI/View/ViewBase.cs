@@ -21,8 +21,12 @@ namespace ZXC
         Custom
     }
 
-    public class ViewBase : MonoBehaviour, IZView
+    public abstract class ViewBase<V, P> : MonoBehaviour, IView 
+        where V : IView 
+        where P : IPresenter<V>
     {
+        protected P presenter;
+        
         public bool IsHide { get; set; }
 
         protected GameObject myObj;
@@ -30,7 +34,6 @@ namespace ZXC
         protected CanvasGroup canvasGroup;
         protected ViewAnimType animType;
 
-        private Dictionary<string, Selectable> componentDic;
         public void Init()
         {
             myObj = gameObject;
@@ -38,7 +41,6 @@ namespace ZXC
             canvasGroup = myObj.GetComponent<CanvasGroup>() ?? myObj.AddComponent<CanvasGroup>();
             myObj.SetActive(false);
             canvasGroup.alpha = 0;
-            GetAllComponent();
             OnInit();
         }
 
@@ -133,33 +135,25 @@ namespace ZXC
 
         }
 
-        protected void BindButtonEvent(string evtName, UnityAction action)
+        protected void BindButtonEvent(int evtName, Button btn)
         {
-            Selectable component = null;
-            if(componentDic.TryGetValue(evtName, out component))
-            {
-                (component as Button).onClick.AddListener(action);
-            }
+            
         }
 
-        protected void BindToggleEvent(string evtName, UnityAction<bool> action)
+        protected void BindToggleEvent(int evtName, Toggle toggle)
         {
-            Selectable component = null;
-            if(componentDic.TryGetValue(evtName, out component))
-            {
-                (component as Toggle).onValueChanged.AddListener(action);
-            }
+
         }
 
-        protected virtual void BindProperty<T>(string propName, OnValueChangedHandler<T> handler)
-        {
-            ViewMgr.Instance.BindProperty<T>(this, propName, handler);
-        }
-
-        protected virtual void UnBindProperty<T>(string propName, OnValueChangedHandler<T> handler)
-        {
-            ViewMgr.Instance.UnBindProperty<T>(this, propName, handler);
-        }
+//        protected virtual void BindProperty<T>(string propName, OnValueChangedHandler<T> handler)
+//        {
+//            ViewMgr.Instance.BindProperty<T>(this, propName, handler);
+//        }
+//
+//        protected virtual void UnBindProperty<T>(string propName, OnValueChangedHandler<T> handler)
+//        {
+//            ViewMgr.Instance.UnBindProperty<T>(this, propName, handler);
+//        }
 
         protected virtual async Task ShowWithCustomAnim()
         {
@@ -197,23 +191,6 @@ namespace ZXC
             await myTrans.DOScale(new Vector3(1.1f, 1.1f, 1f), 0.3f);
             await myTrans.DOScale(new Vector3(0f, 0f, 0f), 0.3f);
             myObj.SetSelfActive(false);
-        }
-
-        private void GetAllComponent()
-        {
-            var buttons = myTrans.GetComponentsInChildren<Button>();
-            foreach (var button in buttons)
-            {
-                string name = $"On{button.gameObject.name}Click";
-                componentDic.Add(name, button);
-            }
-
-            var toggles = myTrans.GetComponentsInChildren<Toggle>();
-            foreach (var toggle in toggles)
-            {
-                string name = $"On{toggle.gameObject.name}ValueChanged";
-                componentDic.Add(name, toggle);
-            }
         }
     }
 }

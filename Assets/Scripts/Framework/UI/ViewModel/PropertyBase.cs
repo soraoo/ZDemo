@@ -9,7 +9,7 @@ namespace ZXC
 
     public class PropertyBase<T> : IZProperty<T>
     {
-        public event OnValueChangedHandler<T> valueChangeEvent;
+        public event OnValueChangedHandler<T> ValueChangedChangeEvent;
 
         private T val;
 
@@ -21,14 +21,10 @@ namespace ZXC
             }
             set
             {
-                if(!val.Equals(value))
-                {
-                    if (valueChangeEvent != null)
-                    {
-                        valueChangeEvent(val, value);
-                    }
-                    val = value;
-                }
+                if(val.Equals(value))
+                    return;
+                ValueChangedChangeEvent?.Invoke(val, value);
+                val = value;
             }
         }
     }

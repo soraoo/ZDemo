@@ -8,15 +8,15 @@ namespace ZXC
     public class Test : MonoBehaviour
     {
         // Use this for initialization
-        void Awake()
+        private void Awake()
         {
             Application.targetFrameRate = 60;
         }
 
-        async void Start()
+        private async void Start()
         {
             ZLog.Debug("Test--------------------");
-            Stopwatch stopwatch = new Stopwatch();
+            var stopwatch = new Stopwatch();
             stopwatch.Start();
             //await ResMgr.Instance.Init();
             //await ResMgr.Instance.LoadAssetBundle("com");
@@ -43,16 +43,15 @@ namespace ZXC
             await new AsyncWaitFrame(30);
             stopwatch.Stop();
             ZLog.Debug(stopwatch.ElapsedMilliseconds);
-            
         }
 
         private IEnumerator TestIE()
         {
-             Stopwatch stopwatch = new Stopwatch();
+            var stopwatch = new Stopwatch();
             stopwatch.Start();
-            for(int i =0; i < 30; i++)
+            for (var i = 0; i < 30; i++)
                 yield return null;
-             stopwatch.Stop();
+            stopwatch.Stop();
             ZLog.Debug(stopwatch.ElapsedMilliseconds);
         }
 
@@ -63,4 +62,3 @@ namespace ZXC
         // }
     }
 }
-

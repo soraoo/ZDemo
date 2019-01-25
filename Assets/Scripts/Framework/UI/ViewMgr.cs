@@ -23,7 +23,7 @@ namespace ZXC
             closeViewQueue = new Queue<IZView>();
         }
 
-        void Start()
+        private void Start()
         {
             StartCoroutine(CheckCloseView());
         }
@@ -32,8 +32,8 @@ namespace ZXC
             where TView : class, IZView
             where TController : class, IZController
         {
-            IZView view = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<TView>() as IZView;
-            IZController controller = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<IZController>() as IZController;
+            var view = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<TView>() as IZView;
+            var controller = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<IZController>() as IZController;
 
             if (!viewDic.ContainsKey(view))
             {
@@ -56,14 +56,14 @@ namespace ZXC
         {
             if (!viewDic.ContainsKey(view)) return;
             var prop = viewDic[view].ViewModel.GetType().GetProperty(propName) as PropertyBase<T>;
-            prop.valueChangeEvent += handler;
+            prop.ValueChangedChangeEvent += handler;
         }
 
         public void UnBindProperty<T>(IZView view, string propName, OnValueChangedHandler<T> handler)
         {
             if (!viewDic.ContainsKey(view)) return;
             var prop = viewDic[view].ViewModel.GetType().GetProperty(propName) as PropertyBase<T>;
-            prop.valueChangeEvent -= handler;
+            prop.ValueChangedChangeEvent -= handler;
         }
 
         public void ExcuteCommand(IZView view, int command, params object[] param)
@@ -86,12 +86,12 @@ namespace ZXC
             }
         }
 
-        void Update()
+        private void Update()
         {
             while (closeViewQueue.Count != 0)
             {
-                IZView view = closeViewQueue.Dequeue();
-                IZController controller = viewDic[view];
+                var view = closeViewQueue.Dequeue();
+                var controller = viewDic[view];
                 view.Close();
                 controller.Disabled();
                 viewDic.Remove(view);
