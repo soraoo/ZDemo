@@ -46,8 +46,14 @@ namespace ZXC
                 {
                     ZLog.Debug(e.Message + "=====" + e.StackTrace);
                 }
+
                 return assetBundle;
             }
+        }
+
+        public async Task<T> LoadAsset<T>(string assetName) where T : Object
+        {
+            return await LoadAsset<T>(AssetId.Create("", assetName));
         }
 
         public async Task<T> LoadAsset<T>(AssetId assetId) where T : Object
@@ -57,32 +63,31 @@ namespace ZXC
             {
                 return o as T;
             }
-            else
+
+            // #if UNITY_EDITOR
+            //                 LoadAssetFromLocal<T>(assetId, onFinished);
+            // #else
+            AssetBundle bundle = null;
+            T asset = null;
+            try
             {
-                // #if UNITY_EDITOR
-                //                 LoadAssetFromLocal<T>(assetId, onFinished);
-                // #else
-                AssetBundle bundle = null;
-                T asset = null;
-                try
+                if (cacheAssetBundleDic.TryGetValue(assetId.BundleId, out bundle))
                 {
-                    if (cacheAssetBundleDic.TryGetValue(assetId.BundleId, out bundle))
-                    {
-                        asset = await LoadAssetFromBundle<T>(assetId, bundle);
-                    }
-                    else
-                    {
-                        bundle = await LoadAssetBundle(assetId.BundleId);
-                        asset = await LoadAssetFromBundle<T>(assetId, bundle);
-                    }
+                    asset = await LoadAssetFromBundle<T>(assetId, bundle);
                 }
-                catch (System.Exception e)
+                else
                 {
-                    ZLog.Debug(e.Message + "=====" + e.StackTrace);
+                    bundle = await LoadAssetBundle(assetId.BundleId);
+                    asset = await LoadAssetFromBundle<T>(assetId, bundle);
                 }
-                return asset;
-                //#endif  
             }
+            catch (System.Exception e)
+            {
+                ZLog.Debug(e.Message + "=====" + e.StackTrace);
+            }
+
+            return asset;
+            //#endif  
         }
 
         public void UnloadAssetBundle(string bundlePath)
@@ -91,12 +96,13 @@ namespace ZXC
             if (cacheAssetBundleDic.TryGetValue(bundlePath, out assetBundle))
             {
                 var dependences = manifest.GetAllDependencies(bundlePath);
-                int count = dependences.Length;
-                for (int i = count - 1; i >= 0; i--)
+                var count = dependences.Length;
+                for (var i = count - 1; i >= 0; i--)
                 {
                     var dependence = dependences[i];
                     Unload(dependence);
                 }
+
                 Unload(bundlePath);
             }
             else
@@ -133,8 +139,12 @@ namespace ZXC
         private async Task DoInit()
         {
             //load asset bundle mainifest
-            var assetBundle = await AssetBundle.LoadFromFileAsync(string.Format("{0}/{1}", ResUtility.GetAssetBundlesPath(), ResUtility.ASSET_BUNDLE_FOLDER_NAME));
-            manifest = assetBundle.LoadAsset<AssetBundleManifest>(ResUtility.ASSET_BUNDLE_MANIFEST);
+            var loader = CreateAssetLoader<AssetBundle>();
+            var assetBundle = await loader.LoadAssetBundle($"{ResUtility.GetAssetBundlesPath()}/{ResUtility.ASSET_BUNDLE_FOLDER_NAME}");
+            RecycleAssetLoader(loader);
+            var mainifestLoader = CreateAssetLoader<AssetBundleManifest>();
+            manifest = await mainifestLoader.LoadAsset(assetBundle, ResUtility.ASSET_BUNDLE_MANIFEST);
+            RecycleAssetLoader(mainifestLoader);
         }
 
         // #if UNITY_EDITOR
@@ -168,6 +178,7 @@ namespace ZXC
                     assetBundleRefCountDic[dependence]++;
                     continue;
                 }
+
                 var depedenceLoader = CreateAssetLoader<AssetBundle>();
                 var depedenceAB = await depedenceLoader.LoadAssetBundle(dependence);
                 RecycleAssetLoader(depedenceLoader);
@@ -179,18 +190,18 @@ namespace ZXC
         private async Task<T> LoadAssetFromBundle<T>(AssetId assetId, AssetBundle bundle) where T : Object
         {
             var loader = CreateAssetLoader<T>();
-            T asset = await loader.LoadAsset(bundle, assetId.ResId);
+            var asset = await loader.LoadAsset(bundle, assetId.ResId);
             RecycleAssetLoader(loader);
             cacheResDic.Add(assetId, asset);
             return asset;
         }
 
-        private AssetLoader<T> CreateAssetLoader<T>() where T : Object
+        private static AssetLoader<T> CreateAssetLoader<T>() where T : Object
         {
             return ObjectFactory.GetFactory(FactoryType.Pool).CreateObject<AssetLoader<T>>();
         }
 
-        private void RecycleAssetLoader<T>(AssetLoader<T> loader) where T : Object
+        private static void RecycleAssetLoader<T>(AssetLoader<T> loader) where T : Object
         {
             ObjectFactory.GetFactory(FactoryType.Pool).ReleaseObject(loader);
         }

@@ -36,7 +36,7 @@ namespace ZXC
             ViewBase<V, P> view = null;
             if (!viewDic.ContainsKey(typeof(V)))
             {
-                var viewObj = await ResMgr.instance.LoadAsset<GameObject>(AssetId.Create("", ""));
+                var viewObj = await ResMgr.instance.LoadAsset<GameObject>(viewName);
                 var presenter = ObjectFactory.GetFactory(FactoryType.Temp).CreateObject<IPresenter<IView>>();
                 view = viewObj.GetComponent<ViewBase<V, P>>() ?? viewObj.AddComponent<ViewBase<V, P>>();
                 presenter.BindView(view);
